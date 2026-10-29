@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#101014">
+<title>HOST CALL MANAGER</title>
+<style>
+:root{--bg:#0c0c10;--panel:#17171e;--panel2:#20202a;--text:#f7f7fb;--muted:#a5a5b5;--gold:#d9b45b;--line:#30303b;--red:#ff7070;--green:#75d6a0}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans",sans-serif;padding-bottom:92px}
+header{padding:24px 18px 16px;background:linear-gradient(135deg,#1b1b24,#0c0c10);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:4}
+.brand{font-size:11px;letter-spacing:3px;color:var(--gold);font-weight:800}.heading{font-size:23px;font-weight:850;margin-top:5px}.sub{font-size:12px;color:var(--muted);margin-top:5px}
+main{max-width:760px;margin:auto;padding:14px}
+nav{position:fixed;z-index:10;bottom:0;left:0;right:0;display:grid;grid-template-columns:repeat(6,1fr);background:#15151b;border-top:1px solid var(--line);padding:7px 5px calc(7px + env(safe-area-inset-bottom))}
+nav button{border:0;background:transparent;color:var(--muted);padding:8px 2px;font-size:11px;font-weight:700}nav button.active{color:var(--gold)}nav span{display:block;font-size:19px;margin-bottom:3px}
+.page{display:none}.page.active{display:block}.cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.card,.panel{background:var(--panel);border:1px solid var(--line);border-radius:15px;padding:14px;margin-bottom:12px}.metric{font-size:26px;font-weight:850;margin-top:8px}.metric small{font-size:12px;color:var(--muted);font-weight:500}.label{color:var(--muted);font-size:12px}.section-title{font-size:16px;font-weight:800;margin:18px 2px 10px}.gold{color:var(--gold)}.muted{color:var(--muted)}.small{font-size:12px;color:var(--muted)}label{display:block;font-size:12px;color:var(--muted);margin:12px 0 6px}
+input,select,textarea{width:100%;border:1px solid #3a3a47;background:#101016;color:var(--text);padding:12px;border-radius:10px;font-size:16px;min-height:44px}textarea{min-height:78px;resize:vertical}
+button{cursor:pointer}.btn{border:0;border-radius:10px;background:var(--gold);color:#15120a;font-weight:800;padding:12px 14px;font-size:14px;min-height:44px}.btn.secondary{background:var(--panel2);color:var(--text);border:1px solid var(--line)}.btn.danger{background:#482326;color:#ffd8d8}.btn.full{width:100%;margin-top:14px}.btnrow{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.btnrow .btn{flex:1}.item{padding:13px 0;border-bottom:1px solid var(--line)}.item:last-child{border-bottom:0}.itemtop{display:flex;justify-content:space-between;gap:8px;align-items:start}.name{font-weight:800;font-size:15px}.tag{font-size:11px;padding:4px 8px;border-radius:999px;background:#292832;color:var(--gold);white-space:nowrap}.item p{margin:6px 0;color:var(--muted);font-size:12px;line-height:1.5}.empty{padding:22px;text-align:center;color:var(--muted);font-size:13px}.notice{background:#252216;border:1px solid #514426;color:#ead7a0;border-radius:12px;padding:12px;font-size:12px;line-height:1.6;margin-bottom:12px}.progress{height:8px;background:#30303a;border-radius:8px;overflow:hidden;margin-top:8px}.progress div{height:100%;background:var(--gold);width:0}.hidden{display:none!important}.divider{height:1px;background:var(--line);margin:14px 0}.inline{display:flex;gap:8px;align-items:center}.inline>*{flex:1}.callbtn{display:inline-block;text-decoration:none;background:#1c3a2c;color:#a9f0c8;padding:9px 11px;border-radius:9px;font-weight:800;font-size:12px}.barrow{display:grid;grid-template-columns:90px 1fr 36px;gap:8px;align-items:center;margin:10px 0;font-size:12px}.bar{height:9px;background:#30303a;border-radius:8px;overflow:hidden}.bar div{height:100%;background:var(--gold)}
+</style>
+</head>
+<body>
+<header><div class="brand">HOST TOOLS / CUSTOMER RELATIONS</div><div class="heading">HOST CALL MANAGER</div><div class="sub">一本の電話を、次の来店につなげる。</div></header>
+<main>
+<section id="home" class="page active">
+ <div class="notice">📌 電話後に結果を記録し、次の連絡予定まで決めよう。データはこのブラウザ内に保存されます。Safariの履歴・Webサイトデータ削除で消えることがあるため、定期的にバックアップしてください。</div>
+ <div class="cards">
+  <div class="card"><div class="label">今日の電話予定</div><div class="metric" id="mDue">0</div><div class="small">件</div></div>
+  <div class="card"><div class="label">今月の電話</div><div class="metric" id="mCalls">0 <small>件</small></div></div>
+  <div class="card"><div class="label">通話成立率</div><div class="metric" id="mConnect">0<small>%</small></div></div>
+  <div class="card"><div class="label">今月の来店</div><div class="metric" id="mVisits">0 <small>人</small></div></div>
+ </div>
+ <div class="section-title">今日・期限超過の予定</div><div class="panel" id="dueList"></div>
+ <div class="section-title">最近の電話記録</div><div class="panel" id="recentList"></div>
+ <div class="btnrow"><button class="btn" onclick="showPage('customers');openCustomerForm()">＋ 顧客を登録</button><button class="btn secondary" onclick="showPage('logs');openLogForm()">☎ 電話結果を記録</button></div>
+</section>
+<section id="customers" class="page">
+ <div class="section-title">顧客管理</div>
+ <input id="customerSearch" placeholder="名前・電話番号で検索" oninput="renderCustomers()">
+ <div class="btnrow"><button class="btn" onclick="openCustomerForm()">＋ 顧客を登録</button><button class="btn secondary" onclick="showPage('logs');openLogForm()">電話結果を記録</button></div>
+ <div class="panel" id="customerList" style="margin-top:12px"></div>
+ <div id="customerForm" class="panel hidden">
+  <div class="section-title" style="margin-top:0">顧客情報</div><input id="cId" type="hidden">
+  <label>名前 *</label><input id="cName" placeholder="例：あやか">
+  <label>電話番号</label><input id="cPhone" type="tel" placeholder="例：09012345678">
+  <div class="inline"><div><label>顧客ランク</label><select id="cRank"><option>S</option><option>A</option><option selected>B</option><option>C</option></select></div><div><label>関係性</label><select id="cStatus"><option>新規</option><option>初回</option><option>見込み</option><option>顧客</option><option>休眠</option></select></div></div>
+  <label>メモ・話題・希望など</label><textarea id="cMemo" placeholder="前回の会話、好きなもの、次に話すことなど"></textarea>
+  <div class="btnrow"><button class="btn" onclick="saveCustomer()">保存</button><button class="btn secondary" onclick="closeCustomerForm()">キャンセル</button></div>
+ </div>
+</section>
+<section id="logs" class="page">
+ <div class="section-title">電話履歴・結果</div>
+ <div class="panel">
+  <label>顧客 *</label><select id="lCustomer"></select>
+  <label>電話した日時</label><input id="lDate" type="datetime-local">
+  <label>電話結果</label><select id="lResult"><option value="connected">通話できた</option><option value="noanswer">不在・出なかった</option><option value="callback">折り返し待ち</option><option value="visit">来店の約束</option><option value="declined">今回は見送り</option><option value="other">その他</option></select>
+  <label>通話時間（分・任意）</label><input id="lDuration" type="number" min="0" placeholder="例：5">
+  <label>内容・相手の反応</label><textarea id="lNote" placeholder="話した内容、反応、次に話すこと"></textarea>
+  <div class="inline"><div><label>来店につながった？</label><select id="lVisit"><option value="no">まだ</option><option value="yes">はい</option></select></div><div><label>売上金額（円）</label><input id="lSales" type="number" min="0" placeholder="0"></div></div>
+  <button class="btn full" onclick="saveLog()">電話結果を保存</button>
+ </div>
+ <div class="section-title">履歴一覧</div><div class="panel" id="logList"></div>
+</section>
+<section id="plans" class="page">
+ <div class="section-title">電話予定・リマインダー</div>
+ <div class="panel">
+  <label>顧客 *</label><select id="pCustomer"></select>
+  <label>次に電話する日時 *</label><input id="pDate" type="datetime-local">
+  <label>目的</label><select id="pReason"><option>近況を聞く</option><option>来店のお誘い</option><option>折り返し</option><option>来店後のお礼</option><option>誕生日・イベント</option><option>その他</option></select>
+  <label>メモ</label><textarea id="pNote" placeholder="何を話すか・確認すること"></textarea>
+  <button class="btn full" onclick="savePlan()">予定を登録</button>
+ </div>
+ <div class="section-title">登録済みの予定</div><div class="panel" id="planList"></div>
+ <div class="notice">※ このWebアプリは、閉じている間の確実な通知を保証できません。予定はアプリを開いて確認してください。iPhoneの「リマインダー」にも重要な予定を登録すると安心です。</div>
+</section>
+<section id="analysis" class="page">
+ <div class="section-title">電話成果分析</div>
+ <div class="panel"><label>集計期間</label><select id="period" onchange="renderAnalysis()"><option value="month">今月</option><option value="7">直近7日</option><option value="30">直近30日</option><option value="all">全期間</option></select></div>
+ <div class="cards">
+  <div class="card"><div class="label">発信記録数</div><div class="metric" id="aCalls">0</div></div>
+  <div class="card"><div class="label">通話成立</div><div class="metric" id="aConnected">0</div></div>
+  <div class="card"><div class="label">来店約束</div><div class="metric" id="aPromises">0</div></div>
+  <div class="card"><div class="label">来店記録</div><div class="metric" id="aVisits">0</div></div>
+  <div class="card"><div class="label">売上合計</div><div class="metric" id="aSales">¥0</div></div>
+  <div class="card"><div class="label">通話成立率</div><div class="metric" id="aRate">0%</div></div>
+ </div>
+ <div class="section-title">電話結果の内訳</div><div class="panel" id="breakdown"></div>
+ <div class="section-title">使い方の目安</div><div class="panel small">・発信記録数が少ない → 電話する時間を予定に固定する<br><br>・発信は多いが通話成立が少ない → 相手の都合がよい時間を確認する<br><br>・通話成立は多いが来店が少ない → 電話の最後に、具体的な候補日を提案する<br><br>・来店約束が多いのに来店が少ない → 前日確認と当日フォローを記録する</div>
+</section>
+<section id="settings" class="page">
+ <div class="section-title">バックアップ・データ管理</div>
+ <div class="panel">
+  <p class="small">顧客情報や電話記録をJSONファイルとして保存し、あとで復元できます。バックアップファイルは他人に見られない場所に保管してください。</p>
+  <button class="btn full" onclick="exportData()">バックアップを書き出す</button>
+  <label>バックアップファイルから復元</label><input id="importFile" type="file" accept=".json,application/json">
+  <button class="btn secondary full" onclick="importData()">バックアップを読み込む</button>
+  <div class="divider"></div><div class="small" id="dataCount"></div>
+  <button class="btn danger full" onclick="clearAll()">すべてのデータを削除</button>
+ </div>
+ <div class="notice">個人情報を扱うアプリです。端末のパスコードを設定し、他人と共有する端末では使用しないでください。電話の自動履歴取得は行いません。通話結果は手動で記録します。</div>
+</section>
+</main>
+<nav>
+<button class="active" data-page="home" onclick="showPage('home')"><span>⌂</span>ホーム</button>
+<button data-page="customers" onclick="showPage('customers')"><span>♙</span>顧客</button>
+<button data-page="logs" onclick="showPage('logs')"><span>☎</span>電話記録</button>
+<button data-page="plans" onclick="showPage('plans')"><span>◷</span>予定</button>
+<button data-page="analysis" onclick="showPage('analysis')"><span>▥</span>分析</button>
+<button data-page="settings" onclick="showPage('settings')"><span>⚙</span>設定</button>
+</nav>
+<script>
+const KEY='hostCallManager_v1';
+let db={customers:[],logs:[],plans:[]};
+const $=id=>document.getElementById(id);
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+const nowLocal=()=>{let d=new Date();d.setMinutes(d.getMinutes()-d.getTimezoneOffset());return d.toISOString().slice(0,16)};
+const dateText=s=>s?new Date(s).toLocaleString('ja-JP',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}):'日時なし';
+const yen=n=>'¥'+Number(n||0).toLocaleString('ja-JP');
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function load(){try{const x=JSON.parse(localStorage.getItem(KEY)||'{}');db={customers:Array.isArray(x.customers)?x.customers:[],logs:Array.isArray(x.logs)?x.logs:[],plans:Array.isArray(x.plans)?x.plans:[]}}catch(e){alert('保存データを読み込めませんでした。バックアップがあれば復元してください。'}}
+function save(){localStorage.setItem(KEY,JSON.stringify(db));renderAll()}
+function showPage(id){document.querySelectorAll('.page').forEach(p=>p.classList.toggle('active',p.id===id));document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('active',b.dataset.page===id));if(id==='analysis')renderAnalysis();if(id==='logs'||id==='plans')fillSelects();if(id==='customers')renderCustomers();if(id==='settings')renderSettings();window.scrollTo(0,0)}
+function openCustomerForm(c){$('customerForm').classList.remove('hidden');$('cId').value=c?.id||'';$('cName').value=c?.name||'';$('cPhone').value=c?.phone||'';$('cRank').value=c?.rank||'B';$('cStatus').value=c?.status||'新規';$('cMemo').value=c?.memo||'';$('cName').focus()}
+function closeCustomerForm(){$('customerForm').classList.add('hidden')}
+function saveCustomer(){const name=$('cName').value.trim();if(!name)return alert('名前を入力してください。');const id=$('cId').value||uid();const old=db.customers.find(c=>c.id===id);const c={id,name,phone:$('cPhone').value.trim(),rank:$('cRank').value,status:$('cStatus').value,memo:$('cMemo').value.trim(),created:old?.created||new Date().toISOString()};if(old)db.customers=db.customers.map(x=>x.id===id?c:x);else db.customers.unshift(c);closeCustomerForm();save();fillSelects();alert('顧客情報を保存しました。')}
+function deleteCustomer(id){if(!confirm('この顧客を削除しますか？電話履歴・予定は残ります。'))return;db.customers=db.customers.filter(c=>c.id!==id);save();fillSelects()}
+function customerName(id){return db.customers.find(c=>c.id===id)?.name||'削除済み顧客'}
+function renderCustomers(){const q=($('customerSearch')?.value||'').toLowerCase();const list=db.customers.filter(c=>(c.name+' '+c.phone).toLowerCase().includes(q));$('customerList').innerHTML=list.length?list.map(c=>`<div class="item"><div class="itemtop"><div><div class="name">${esc(c.name)} <span class="tag">${esc(c.rank)}ランク</span></div><p>${esc(c.phone||'電話番号未登録')} ・ ${esc(c.status)}</p></div><span class="small">${db.logs.filter(l=>l.customerId===c.id).length}件</span></div><p>${esc(c.memo||'メモなし')}</p><div class="btnrow"><a class="callbtn" href="${c.phone?'tel:'+encodeURIComponent(c.phone.replace(/[^\d+*#,;]/g,'')):'#'}" ${c.phone?'':'onclick="return false"'}>☎ 電話をかける</a><button class="btn secondary" onclick="openCustomerForm(db.customers.find(x=>x.id==='${c.id}'))">編集</button><button class="btn secondary" onclick="quickLog('${c.id}')">結果記録</button><button class="btn secondary" onclick="quickPlan('${c.id}')">予定</button><button class="btn danger" onclick="deleteCustomer('${c.id}')">削除</button></div></div>`).join(''):'<div class="empty">顧客がまだいません。最初の顧客を登録しよう。</div>'}
+function fillSelects(){for(const id of ['lCustomer','pCustomer']){const sel=$(id),prev=sel.value;sel.innerHTML=db.customers.length?db.customers.map(c=>`<option value="${c.id}">${esc(c.name)}（${esc(c.rank)}）</option>`).join(''):'<option value="">先に顧客を登録してください</option>';if(db.customers.some(c=>c.id===prev))sel.value=prev}}
+function openLogForm(customerId){fillSelects();$('lDate').value=nowLocal();$('lResult').value='connected';$('lDuration').value='';$('lNote').value='';$('lVisit').value='no';$('lSales').value='';if(customerId)$('lCustomer').value=customerId}
+function quickLog(id){showPage('logs');openLogForm(id)}
+function saveLog(){const customerId=$('lCustomer').value;if(!customerId)return alert('先に顧客を登録してください。');const date=$('lDate').value||nowLocal();db.logs.unshift({id:uid(),customerId,date,result:$('lResult').value,duration:Number($('lDuration').value||0),note:$('lNote').value.trim(),visit:$('lVisit').value==='yes',sales:Number($('lSales').value||0)});save();alert('電話結果を保存しました。次回の予定も登録しよう！');}
+const resultLabels={connected:'通話できた',noanswer:'不在・出なかった',callback:'折り返し待ち',visit:'来店の約束',declined:'今回は見送り',other:'その他'};
+function renderLogs(){const arr=db.logs;$('logList').innerHTML=arr.length?arr.map(l=>`<div class="item"><div class="itemtop"><div class="name">${esc(customerName(l.customerId))}</div><span class="tag">${esc(resultLabels[l.result]||l.result)}</span></div><p>${dateText(l.date)} ・ ${l.duration?l.duration+'分 ・ ':''}${l.visit?'来店あり ・ ':''}${l.sales?yen(l.sales):''}</p>${l.note?`<p>${esc(l.note)}</p>`:''}<button class="btn danger" onclick="deleteLog('${l.id}')">記録を削除</button></div>`).join(''):'<div class="empty">電話結果はまだありません。</div>'}
+function deleteLog(id){if(confirm('この電話記録を削除しますか？')){db.logs=db.logs.filter(l=>l.id!==id);save()}}
+function openPlanForm(customerId){fillSelects();$('pDate').value=nowLocal();$('pReason').value='近況を聞く';$('pNote').value='';if(customerId)$('pCustomer').value=customerId}
+function quickPlan(id){showPage('plans');openPlanForm(id)}
+function savePlan(){const customerId=$('pCustomer').value,date=$('pDate').value;if(!customerId)return alert('先に顧客を登録してください。');if(!date)return alert('日時を選んでください。');db.plans.push({id:uid(),customerId,date,reason:$('pReason').value,note:$('pNote').value.trim(),done:false});db.plans.sort((a,b)=>a.date.localeCompare(b.date));save();alert('電話予定を登録しました。')}
+function finishPlan(id){const p=db.plans.find(p=>p.id===id);if(p)p.done=true;save()}
+function deletePlan(id){if(confirm('この予定を削除しますか？')){db.plans=db.plans.filter(p=>p.id!==id);save()}}
+function planHtml(p){return `<div class="item"><div class="itemtop"><div><div class="name">${esc(customerName(p.customerId))}</div><p>${dateText(p.date)} ・ ${esc(p.reason)}</p></div><span class="tag">${new Date(p.date)<new Date()?'期限超過':'予定'}</span></div>${p.note?`<p>${esc(p.note)}</p>`:''}<div class="btnrow"><a class="callbtn" href="${(()=>{let c=db.customers.find(c=>c.id===p.customerId);return c?.phone?'tel:'+encodeURIComponent(c.phone.replace(/[^\d+*#,;]/g,'')):'#'})()}">☎ 発信</a><button class="btn" onclick="finishPlan('${p.id}')">完了</button><button class="btn secondary" onclick="quickLog('${p.customerId}')">結果記録</button><button class="btn danger" onclick="deletePlan('${p.id}')">削除</button></div></div>`}
+function renderPlans(){const arr=db.plans.filter(p=>!p.done).sort((a,b)=>a.date.localeCompare(b.date));$('planList').innerHTML=arr.length?arr.map(planHtml).join(''):'<div class="empty">予定はありません。次の電話予定を登録しよう。</div>'}
+function renderHome(){const today=new Date();today.setHours(23,59,59,999);const start=new Date();start.setDate(1);start.setHours(0,0,0,0);const due=db.plans.filter(p=>!p.done&&new Date(p.date)<=today);const logs=db.logs.filter(l=>new Date(l.date)>=start);$('mDue').textContent=due.length;$('mCalls').innerHTML=logs.length+' <small>件</small>';const con=logs.filter(l=>['connected','visit'].includes(l.result)).length;$('mConnect').innerHTML=(logs.length?Math.round(con/logs.length*100):0)+'<small>%</small>';$('mVisits').innerHTML=logs.filter(l=>l.visit).length+' <small>人</small>';$('dueList').innerHTML=due.length?due.slice(0,5).map(planHtml).join(''):'<div class="empty">今日・期限超過の電話予定はありません。</div>';$('recentList').innerHTML=db.logs.length?db.logs.slice(0,5).map(l=>`<div class="item"><div class="itemtop"><div class="name">${esc(customerName(l.customerId))}</div><span class="tag">${esc(resultLabels[l.result]||l.result)}</span></div><p>${dateText(l.date)}${l.visit?' ・ 来店あり':''}${l.sales?' ・ '+yen(l.sales):''}</p></div>`).join(''):'<div class="empty">電話記録はまだありません。</div>'}
+function renderAnalysis(){const period=$('period').value;const now=new Date();let arr=db.logs.filter(l=>{const d=new Date(l.date);if(period==='all')return true;if(period==='month')return d.getFullYear()===now.getFullYear()&&d.getMonth()===now.getMonth();const days=Number(period);return d>=new Date(now.getTime()-days*86400000)});const connected=arr.filter(l=>['connected','visit'].includes(l.result)).length,promises=arr.filter(l=>l.result==='visit').length,visits=arr.filter(l=>l.visit).length,sales=arr.reduce((s,l)=>s+Number(l.sales||0),0);$('aCalls').textContent=arr.length;$('aConnected').textContent=connected;$('aPromises').textContent=promises;$('aVisits').textContent=visits;$('aSales').textContent=yen(sales);$('aRate').textContent=(arr.length?Math.round(connected/arr.length*100):0)+'%';const keys=Object.keys(resultLabels);$('breakdown').innerHTML=keys.map(k=>{const n=arr.filter(l=>l.result===k).length;return `<div class="barrow"><span>${resultLabels[k]}</span><div class="bar"><div style="width:${arr.length?n/arr.length*100:0}%"></div></div><b>${n}</b></div>`}).join('')+`<div class="divider"></div><div class="small">※ 「来店記録」は電話履歴で「来店につながった？」を「はい」にした件数です。売上は入力した金額の合計で、電話が直接生んだ売上を保証するものではありません。</div>`}
+function renderSettings(){$('dataCount').textContent=`登録顧客 ${db.customers.length}人 ／ 電話記録 ${db.logs.length}件 ／ 未完了予定 ${db.plans.filter(p=>!p.done).length}件`}
+function renderAll(){renderCustomers();renderLogs();renderPlans();renderHome();renderSettings();if($('analysis').classList.contains('active'))renderAnalysis()}
+function exportData(){const blob=new Blob([JSON.stringify({version:1,exportedAt:new Date().toISOString(),...db},null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='host-call-manager-backup-'+new Date().toISOString().slice(0,10)+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}
+function importData(){const file=$('importFile').files[0];if(!file)return alert('先にJSONバックアップファイルを選んでください。');const reader=new FileReader();reader.onload=()=>{try{const x=JSON.parse(reader.result);if(!Array.isArray(x.customers)||!Array.isArray(x.logs)||!Array.isArray(x.plans))throw Error('format');if(!confirm('現在のデータをバックアップの内容で置き換えますか？'))return;db={customers:x.customers,logs:x.logs,plans:x.plans};save();fillSelects();alert('復元しました。')}catch(e){alert('読み込めないファイルです。HOST CALL MANAGERのバックアップを選んでください。')}};reader.readAsText(file)}
+function clearAll(){if(!confirm('すべての顧客・電話履歴・予定を完全に削除します。先にバックアップしましたか？'))return;if(!confirm('本当に削除しますか？この操作は取り消せません。'))return;db={customers:[],logs:[],plans:[]};save();fillSelects()}
+document.addEventListener('DOMContentLoaded',()=>{load();$('lDate').value=nowLocal();fillSelects();renderAll()});
+</script>
+</body>
+</html>
